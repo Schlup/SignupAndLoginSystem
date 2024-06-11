@@ -1,12 +1,15 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
+import AuthContext from "../context/AuthContext";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  const { getLoggedIn } = useContext(AuthContext);
 
   async function submit(e) {
     e.preventDefault();
@@ -16,6 +19,7 @@ export default function Login() {
         email,
         password,
       });
+      await getLoggedIn();
       console.log(response.data);
       navigate("/home");
     } catch (e) {

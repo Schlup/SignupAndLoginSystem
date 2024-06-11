@@ -4,20 +4,26 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
+const cookieParser = require('cookie-parser');
 
 const app = express();
 
+app.use(cookieParser())
+
 //Config JSON response
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:3000"],
+  credentials: true
+}));
 
 //Public route - Open route
-app.get("/", (req, res) => {
+app.get("/login", (req, res) => {
   res.status(200).json({ msg: "Bem vindo" });
 });
 
 //Private route
-app.get("/user/:id", checkToken, async(req, res) => {
+app.get("/user/:id", checkToken, async (req, res) => {
   const id = req.params.id
 
   //Check if user exists
@@ -32,21 +38,23 @@ app.get("/user/:id", checkToken, async(req, res) => {
 
 //Check if token is valid
 function checkToken(req, res, next) {
-  const authHeader = req.headers["authorization"]
-  const token = authHeader && authHeader.split(" ")[1]
+  const token = req.headers.authorization.split(" ")[1];
 
   if (!token) {
     return res.status(401).json({ msg: "Acesso negado!" })
   }
 
   try {
-    const secret = process.env.SECRET
-    jwt.verify(token, secret)
+    const jwtSecret = process.env.SECRET
+    const decodedToken = jwt.verify(token, jwtSecret)
+    req.user = decodedToken;
     next()
-  } catch(error) {
+  } catch (error) {
     res.status(400).json({ msg: "token inválido" })
   }
 }
+
+
 
 //Models
 const User = require("./models/User");
@@ -140,13 +148,35 @@ app.post("/auth/login", async (req, res) => {
   }
 
   try {
-    const secret = process.env.SECRET;
-    const token = jwt.sign(
-      { id: user._id }, 
-      secret
-    ) 
+    const jwtSecret = process.env.SECRET;
+    const tempo = 10 * 1000; // 10 segundos em milissegundos
+    const token = jwt.sign({ id: user._id }, jwtSecret);
+    res.cookie("token", token, { httpOnly: true });
     res.status(200).json({ msg: "Autenticaçao realizada com sucesso", token })
   } catch (err) {
     return res.status(500).json({ msg: "Error serverside" });
   }
 });
+
+
+// Logout
+app.get("/auth/logout", (req, res) => {
+  res.cookie("token", "", {
+    httpOnly: true,
+    expires: new Date(0)
+  })
+    .send();
+}) 
+
+app.get("/auth/loggedIn", (req, res) => {
+  try {
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json(false);
+    
+    jwt.verify(token, process.env.SECRET);
+
+    res.send(true);
+  } catch (err) {
+    res.json(false);
+  }
+})

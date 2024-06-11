@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
+import AuthContext from "../context/AuthContext";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -9,6 +10,8 @@ export default function Register() {
   const [cpassword, setCpassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  const getLoggedIn = useContext(AuthContext);
 
   async function submit(e) {
     e.preventDefault();
@@ -20,6 +23,7 @@ export default function Register() {
         password,
         confirmpassword: cpassword,
       });
+      await getLoggedIn();
       console.log(response.data);
       navigate("/home");
     } catch (e) {
