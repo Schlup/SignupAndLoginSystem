@@ -54,8 +54,6 @@ function checkToken(req, res, next) {
   }
 }
 
-
-
 //Models
 const User = require("./models/User");
 

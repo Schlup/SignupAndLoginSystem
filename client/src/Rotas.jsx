@@ -6,6 +6,8 @@ import Signup from "./pages/Signup"
 import Home from "./pages/Home"
 import LandingPage from "./pages/LandingPage";
 import MissingPage from "./pages/MissingPage";
+import Agenda from "./pages/Agenda";
+import LogOutBtn from "./pages/LogOutBtn";
 
 function Rotas() {
   const { loggedIn } = useContext(AuthContext);
@@ -13,12 +15,13 @@ function Rotas() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
         {
           loggedIn === undefined && (
             <>
+              <Route path="/" element={<LandingPage />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/logout" errorElement={<LogOutBtn />} />
             </>
           )
         }
@@ -26,10 +29,11 @@ function Rotas() {
           loggedIn === true && (
             <>
               <Route path="/home" element={<Home />} />
+              <Route path="/agenda" element={<Agenda />} />
             </>
           )
         }
-        <Route path="*" element={<MissingPage />} ></Route>
+        <Route path="*" element={<MissingPage />}></Route>
       </Routes>
     </BrowserRouter>
   );
